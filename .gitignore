@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets: never commit .env (copy .env.example instead)
+.env
+
+# Local files
+uploads/
+*.db
+.vscode/
+.idea/
+.pytest_cache/

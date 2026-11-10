@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, status_badge, post_button %}
+{% block title %}Request #{{ item.id }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+  <li class="breadcrumb-item"><a href="/special-items">Special Items</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Request #{{ item.id }}</li>
+</ol></nav>
+
+{% call page_header("Request #" ~ item.id ~ ": " ~ item.type_label, "box-seam") %}
+  {{ status_badge(item.status) }}
+  {% if item.is_pending and item.resident_id == current_user.id %}
+    {{ post_button("/special-items/" ~ item.id ~ "/cancel", "Cancel request", icon="x-circle", confirm="Cancel this request?") }}
+  {% endif %}
+{% endcall %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <div class="card">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-4">Resident</dt><dd class="col-8">{{ item.resident.name }}{% if reviewer %} <span class="small text-body-secondary">· {{ item.resident.email }}{% if item.resident.phone %} · {{ item.resident.phone }}{% endif %}</span>{% endif %}</dd>
+          <dt class="col-4">Pickup address</dt><dd class="col-8">{{ item.pickup_address }}</dd>
+          <dt class="col-4">Submitted</dt><dd class="col-8">{{ item.submitted_at.strftime("%d %b %Y, %H:%M") if item.submitted_at else "—" }}</dd>
+          <dt class="col-4">Description</dt><dd class="col-8" style="white-space: pre-line">{{ item.description }}</dd>
+        </dl>
+        {% if item.photo_path %}
+          <hr>
+          <a href="/special-items/{{ item.id }}/photo" target="_blank" rel="noopener">
+            <img class="img-fluid rounded border request-photo" src="/special-items/{{ item.id }}/photo" alt="Photo of the item">
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    {% if not item.is_pending %}
+      <div class="card {% if item.status == 'approved' %}border-success{% elif item.status == 'rejected' %}border-danger{% endif %}">
+        <div class="card-body">
+          <h2 class="h6">Outcome</h2>
+          {% if item.status == "approved" and item.specialist_service %}
+            {% set s = item.specialist_service %}
+            <p class="mb-2">Approved and referred to:</p>
+            <div class="border rounded p-2 mb-2">
+              <strong>{{ s.name }}</strong> <span class="badge text-bg-light border">{{ s.type_label }}</span>
+              <div class="small"><i class="bi bi-telephone"></i> {{ s.contact_phone }}</div>
+              {% if s.email %}<div class="small"><i class="bi bi-envelope"></i> {{ s.email }}</div>{% endif %}
+              {% if s.notes %}<div class="small text-body-secondary">{{ s.notes }}</div>{% endif %}
+            </div>
+            <p class="small text-body-secondary mb-2">Contact the service to arrange collection. EcoWaste does not book the pickup for you.</p>
+          {% elif item.status == "rejected" %}
+            <p class="mb-2">This request was rejected.</p>
+          {% elif item.status == "cancelled" %}
+            <p class="mb-2">You cancelled this request.</p>
+          {% endif %}
+          {% if item.review_note %}<div class="small"><strong>Note from staff:</strong> {{ item.review_note }}</div>{% endif %}
+          {% if item.reviewed_at %}
+            <div class="small text-body-secondary mt-2">Reviewed {{ item.reviewed_at.strftime("%d %b %Y, %H:%M") }}{% if reviewer and item.reviewed_by %} by {{ item.reviewed_by.name }}{% endif %}</div>
+          {% endif %}
+        </div>
+      </div>
+    {% elif reviewer %}
+      <div class="card border-success mb-3">
+        <div class="card-body">
+          <h2 class="h6 text-success"><i class="bi bi-check-circle"></i> Approve and refer</h2>
+          {% if matching_services %}
+            <form method="post" action="/special-items/{{ item.id }}/approve">
+              <label class="form-label small" for="service_id">Specialist service for {{ item.type_label|lower }}</label>
+              <select class="form-select mb-2" id="service_id" name="service_id" required>
+                {% for s in matching_services %}<option value="{{ s.id }}">{{ s.name }} · {{ s.contact_phone }}</option>{% endfor %}
+              </select>
+              <label class="form-label small" for="approve-note">Note for the resident <span class="text-body-secondary">(optional)</span></label>
+              <textarea class="form-control mb-2" id="approve-note" name="note" rows="2"></textarea>
+              <button class="btn btn-success" type="submit">Approve & refer</button>
+            </form>
+          {% else %}
+            <p class="small mb-0">No active specialist service handles {{ item.type_label|lower }} yet.
+              <a href="/special-items/services">Add one</a> before approving.</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card border-danger">
+        <div class="card-body">
+          <h2 class="h6 text-danger"><i class="bi bi-x-circle"></i> Reject</h2>
+          <form method="post" action="/special-items/{{ item.id }}/reject">
+            <label class="form-label small" for="reject-note">Reason (shown to the resident)</label>
+            <textarea class="form-control mb-2" id="reject-note" name="note" rows="2" required></textarea>
+            <button class="btn btn-outline-danger" type="submit">Reject request</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-warning mb-0"><i class="bi bi-hourglass-split"></i> Waiting for staff review.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

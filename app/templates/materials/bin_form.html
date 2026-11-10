@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, error_alert %}
+{% block title %}Edit {{ bin_type.name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Edit bin type</h1>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-8">{{ input("name", "Name", form, required=True, attrs='maxlength="60"') }}</div>
+            <div class="col-4">{{ input("colour", "Colour", form, type="color", required=True, attrs='style="height: 38px"') }}</div>
+            <div class="col-12">{{ input("description", "Description", form) }}</div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">Save changes</button>
+            <a class="btn btn-outline-secondary" href="/materials/bins">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, active_badge, status_badge, post_button %}
+{% block title %}Zones & Collectors{% endblock %}
+{% block content %}
+{{ page_header("Collector & Service Zone Management", "geo-alt", "Organise collection responsibilities and service coverage.") }}
+
+<section class="mb-5">
+  <div class="d-flex align-items-center mb-2">
+    <h2 class="h5 mb-0 me-auto">Service zones <span class="badge text-bg-light">{{ zones|length }}</span></h2>
+    <a class="btn btn-eco btn-sm" href="/zones/new"><i class="bi bi-plus-lg"></i> Add zone</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Zone</th><th>Area</th><th>Status</th><th>Collectors</th><th></th></tr></thead>
+      <tbody>
+        {% for z in zones %}
+          <tr>
+            <td class="fw-semibold">{{ z.name }}</td>
+            <td class="small text-body-secondary">{{ z.area_description or "—" }}</td>
+            <td>{{ active_badge(z.is_active) }}</td>
+            <td>
+              {% for c in z.collectors %}
+                <span class="badge rounded-pill text-bg-light border {% if not c.is_active %}text-decoration-line-through{% endif %}">{{ c.name }}</span>
+              {% else %}
+                <span class="small text-danger"><i class="bi bi-exclamation-circle"></i> No collector</span>
+              {% endfor %}
+            </td>
+            <td class="text-end text-nowrap">
+              <a class="btn btn-sm btn-outline-secondary" href="/zones/{{ z.id }}/edit" aria-label="Edit {{ z.name }}"><i class="bi bi-pencil"></i></a>
+              {{ post_button("/zones/" ~ z.id ~ "/delete", "", icon="trash", confirm="Delete zone " ~ z.name ~ "? Collectors stay registered.") }}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="text-body-secondary">No zones yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="collectors">
+  <div class="d-flex align-items-center mb-2">
+    <h2 class="h5 mb-0 me-auto">Collectors <span class="badge text-bg-light">{{ collectors|length }}</span></h2>
+    <a class="btn btn-eco btn-sm" href="/zones/collectors/new"><i class="bi bi-person-plus"></i> Register collector</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Name</th><th>Contact</th><th>Vehicle</th><th>Availability</th><th>Account</th><th>Zones</th><th></th></tr></thead>
+      <tbody>
+        {% for c in collectors %}
+          <tr>
+            <td class="fw-semibold">{{ c.name }}</td>
+            <td class="small">{{ c.email }}<br><span class="text-body-secondary">{{ c.phone or "" }}</span></td>
+            <td>{{ c.vehicle_no or "—" }}</td>
+            <td>{{ status_badge(c.availability_status) }}</td>
+            <td>{{ active_badge(c.is_active) }}</td>
+            <td>
+              {% for z in c.zones %}<span class="badge rounded-pill bg-eco">{{ z.name }}</span> {% else %}<span class="small text-body-secondary">None</span>{% endfor %}
+            </td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="/zones/collectors/{{ c.id }}/edit" aria-label="Manage {{ c.name }}"><i class="bi bi-pencil"></i></a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7" class="text-body-secondary">No collectors yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

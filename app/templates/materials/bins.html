@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, input, error_alert, post_button %}
+{% block title %}Bin types{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+  <li class="breadcrumb-item"><a href="/materials">Sorting Guide</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Bin types</li>
+</ol></nav>
+{{ page_header("Bin types", "trash3", "The coloured bins residents sort their waste into.") }}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Bin</th><th>Description</th><th class="text-center">Materials</th><th></th></tr></thead>
+        <tbody>
+          {% for b in bin_types %}
+            <tr>
+              <td class="text-nowrap"><span class="bin-swatch" style="background: {{ b.colour }}"></span> {{ b.name }}</td>
+              <td class="small text-body-secondary">{{ b.description or "—" }}</td>
+              <td class="text-center">{{ b.categories|length }}</td>
+              <td class="text-end text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary" href="/materials/bins/{{ b.id }}/edit" aria-label="Edit {{ b.name }}"><i class="bi bi-pencil"></i></a>
+                {{ post_button("/materials/bins/" ~ b.id ~ "/delete", "", icon="trash", confirm="Delete the " ~ b.name ~ " bin type?") }}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="text-body-secondary">No bin types yet. Add one on the right.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-12 col-lg-5">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6">Add a bin type</h2>
+        {{ error_alert(error) }}
+        <form method="post" action="/materials/bins" novalidate>
+          <div class="row g-3">
+            <div class="col-8">{{ input("name", "Name", form, required=True, attrs='maxlength="60"') }}</div>
+            <div class="col-4">{{ input("colour", "Colour", form, type="color", required=True, attrs='style="height: 38px"') }}</div>
+            <div class="col-12">{{ input("description", "Description", form) }}</div>
+          </div>
+          <button class="btn btn-eco mt-3" type="submit"><i class="bi bi-plus-lg"></i> Add bin type</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

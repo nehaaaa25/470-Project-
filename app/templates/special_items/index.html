@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, status_badge %}
+{% block title %}Special Items{% endblock %}
+{% block content %}
+{% if reviewer %}
+  {% call page_header("Special Item Requests", "box-seam", "Review bulky, electronic and hazardous item requests and refer them to specialists.") %}
+    <a class="btn btn-outline-secondary btn-sm" href="/special-items/services"><i class="bi bi-tools"></i> Specialist services</a>
+  {% endcall %}
+{% else %}
+  {% call page_header("My Special Item Requests", "box-seam", "Ask for help with bulky, electronic or hazardous items that normal pickup does not take.") %}
+    <a class="btn btn-eco btn-sm" href="/special-items/new"><i class="bi bi-plus-lg"></i> New request</a>
+  {% endcall %}
+{% endif %}
+
+<ul class="nav nav-pills mb-3 small">
+  <li class="nav-item"><a class="nav-link {% if not status %}active{% endif %}" href="/special-items">All
+    <span class="badge text-bg-light">{{ counts.values()|sum }}</span></a></li>
+  {% for s in ["pending", "approved", "rejected", "cancelled"] %}
+    <li class="nav-item"><a class="nav-link {% if status == s %}active{% endif %}" href="/special-items?status={{ s }}">{{ s|capitalize }}
+      <span class="badge text-bg-light">{{ counts[s] }}</span></a></li>
+  {% endfor %}
+</ul>
+
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead>
+      <tr><th>#</th><th>Item</th>{% if reviewer %}<th>Resident</th>{% endif %}<th>Submitted</th><th>Status</th><th>Referred to</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in requests %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>
+            <div class="fw-semibold">{{ r.type_label }}</div>
+            <div class="small text-body-secondary text-truncate" style="max-width: 22rem">{{ r.description }}</div>
+          </td>
+          {% if reviewer %}<td class="small">{{ r.resident.name }}</td>{% endif %}
+          <td class="small text-nowrap">{{ r.submitted_at.strftime("%d %b %Y") if r.submitted_at else "" }}</td>
+          <td>{{ status_badge(r.status) }}</td>
+          <td class="small">{{ r.specialist_service.name if r.specialist_service else "—" }}</td>
+          <td class="text-end"><a class="btn btn-sm {{ 'btn-eco' if reviewer and r.is_pending else 'btn-outline-secondary' }}" href="/special-items/{{ r.id }}">{{ "Review" if reviewer and r.is_pending else "View" }}</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="text-body-secondary">
+          No requests{% if status %} with status “{{ status }}”{% endif %}.
+          {% if not reviewer and not status %}<a href="/special-items/new">Submit your first request</a>.{% endif %}
+        </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

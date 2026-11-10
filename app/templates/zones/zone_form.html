@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, checkbox, multi_check, error_alert %}
+{% block title %}{{ "Edit " ~ zone.name if zone else "Add zone" }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">{{ "Edit zone" if zone else "Add a service zone" }}</h1>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">{{ input("name", "Zone name", form, required=True, attrs='maxlength="80" placeholder="e.g. Mohakhali Block A"') }}</div>
+            <div class="col-md-6 d-flex align-items-end">{{ checkbox("is_active", "Zone is active", form) }}</div>
+            <div class="col-12">{{ input("area_description", "Area description", form, help="Roads, blocks or landmarks this zone covers.") }}</div>
+            <div class="col-12">
+              <div class="form-label">Collectors serving this zone</div>
+              {{ multi_check("collector_ids", collectors|pairs, form.collector_ids or [],
+                             "No collectors registered yet. Register one from the Zones page.") }}
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">{{ "Save changes" if zone else "Add zone" }}</button>
+            <a class="btn btn-outline-secondary" href="/zones">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

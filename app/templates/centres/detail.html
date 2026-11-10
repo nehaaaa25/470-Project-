@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, active_badge, post_button %}
+{% block title %}{{ centre.name }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+  <li class="breadcrumb-item"><a href="/centres">Centres</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ centre.name }}</li>
+</ol></nav>
+
+{% call page_header(centre.name, "building") %}
+  {% if has_role(current_user, 'administrator') %}
+    <a class="btn btn-outline-secondary btn-sm" href="/centres/{{ centre.id }}/edit"><i class="bi bi-pencil"></i> Edit</a>
+    {{ post_button("/centres/" ~ centre.id ~ "/delete", "Delete", icon="trash", confirm="Delete " ~ centre.name ~ "?") }}
+  {% endif %}
+{% endcall %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5">Status</dt><dd class="col-7">{{ active_badge(centre.is_active) }}</dd>
+          <dt class="col-5">Address</dt><dd class="col-7">{{ centre.address }}</dd>
+          <dt class="col-5">Phone</dt><dd class="col-7">{{ centre.phone or "—" }}</dd>
+          <dt class="col-5">Opening hours</dt><dd class="col-7">{{ centre.opening_hours }}</dd>
+          <dt class="col-5">Processing capacity</dt><dd class="col-7">{{ "{:,.0f}".format(centre.processing_capacity_kg) }} kg per day</dd>
+          <dt class="col-5">Location</dt>
+          <dd class="col-7">
+            {% if centre.latitude is not none %}
+              {{ "%.5f"|format(centre.latitude) }}, {{ "%.5f"|format(centre.longitude) }}
+              <a class="small ms-1" target="_blank" rel="noopener"
+                 href="https://www.openstreetmap.org/?mlat={{ centre.latitude }}&mlon={{ centre.longitude }}#map=17/{{ centre.latitude }}/{{ centre.longitude }}">Open map <i class="bi bi-box-arrow-up-right"></i></a>
+            {% else %}—{% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <h2 class="h5">Accepted materials</h2>
+    <ul class="list-group">
+      {% for m in centre.materials %}
+        <li class="list-group-item d-flex align-items-center">
+          <a class="me-auto" href="/materials/{{ m.id }}">{{ m.name }}</a>
+          {% if m.bin_type %}<span class="small text-body-secondary"><span class="bin-swatch" style="background: {{ m.bin_type.colour }}"></span> {{ m.bin_type.name }}</span>{% endif %}
+        </li>
+      {% else %}
+        <li class="list-group-item text-body-secondary">None listed.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

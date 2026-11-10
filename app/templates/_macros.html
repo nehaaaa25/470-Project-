@@ -1,0 +1,96 @@
+{# Reusable form pieces. Use them in a template like this:
+     {% from "_macros.html" import input, textarea, checkbox, error_alert %}
+     {{ input("name", "Full name", form, required=True) }}
+#}
+
+{% macro _value(form, name) -%}
+  {%- set v = form.get(name) -%}{{ '' if v is none else v }}
+{%- endmacro %}
+
+{% macro label(name, text, required) -%}
+  <label class="form-label" for="{{ name }}">{{ text }}{% if not required %} <span class="text-body-secondary small">(optional)</span>{% endif %}</label>
+{%- endmacro %}
+
+{% macro input(name, text, form, type="text", required=False, help=None, attrs="") -%}
+  {{ label(name, text, required) }}
+  <input class="form-control" type="{{ type }}" id="{{ name }}" name="{{ name }}" value="{{ _value(form, name) }}"
+         {% if required %}required{% endif %} {{ attrs|safe }}>
+  {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+{%- endmacro %}
+
+{% macro textarea(name, text, form, rows=3, required=False, help=None) -%}
+  {{ label(name, text, required) }}
+  <textarea class="form-control" id="{{ name }}" name="{{ name }}" rows="{{ rows }}" {% if required %}required{% endif %}>{{ _value(form, name) }}</textarea>
+  {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+{%- endmacro %}
+
+{% macro checkbox(name, text, form, help=None) -%}
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" id="{{ name }}" name="{{ name }}" value="true" {% if form.get(name) %}checked{% endif %}>
+    <label class="form-check-label" for="{{ name }}">{{ text }}</label>
+    {% if help %}<div class="form-text mt-0">{{ help }}</div>{% endif %}
+  </div>
+{%- endmacro %}
+
+{# options = list of (value, label) pairs #}
+{% macro select(name, text, form, options, required=True, blank=None) -%}
+  {{ label(name, text, required) }}
+  <select class="form-select" id="{{ name }}" name="{{ name }}">
+    {% if blank is not none %}<option value="">{{ blank }}</option>{% endif %}
+    {% for value, option_label in options %}
+      <option value="{{ value }}" {% if _value(form, name)|string == value|string %}selected{% endif %}>{{ option_label }}</option>
+    {% endfor %}
+  </select>
+{%- endmacro %}
+
+{# Checkbox list for many-to-many links. options = list of (id, label); selected = list of ids #}
+{% macro multi_check(name, options, selected, empty_text="Nothing to choose yet.") -%}
+  {% if options %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-1">
+      {% for value, option_label in options %}
+        <div class="col">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="{{ name }}" value="{{ value }}" id="{{ name }}-{{ value }}"
+                   {% if value in selected or value|string in selected %}checked{% endif %}>
+            <label class="form-check-label" for="{{ name }}-{{ value }}">{{ option_label }}</label>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-body-secondary small mb-0">{{ empty_text }}</p>
+  {% endif %}
+{%- endmacro %}
+
+{% macro error_alert(error) -%}
+  {% if error %}<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>{% endif %}
+{%- endmacro %}
+
+{# A small POST form with one button; asks "Are you sure?" first when confirm is given. #}
+{% macro post_button(action, text, style="outline-danger", icon=None, confirm=None, size="sm") -%}
+  <form method="post" action="{{ action }}" class="d-inline" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
+    <button class="btn btn-{{ style }} btn-{{ size }}" type="submit">{% if icon %}<i class="bi bi-{{ icon }}"></i> {% endif %}{{ text }}</button>
+  </form>
+{%- endmacro %}
+
+{% macro active_badge(active) -%}
+  {% if active %}<span class="badge text-bg-success">Active</span>{% else %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}
+{%- endmacro %}
+
+{% macro status_badge(status) -%}
+  {% set colours = {"pending": "warning", "approved": "success", "rejected": "danger", "cancelled": "secondary",
+                    "active": "success", "paused": "warning", "expired": "secondary",
+                    "valid": "success", "upcoming": "info", "available": "success", "busy": "warning", "on_leave": "secondary"} %}
+  <span class="badge text-bg-{{ colours.get(status, 'secondary') }}">{{ status|replace('_', ' ')|capitalize }}</span>
+{%- endmacro %}
+
+{% macro page_header(title, icon=None, subtitle=None) -%}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    {% if icon %}<i class="bi bi-{{ icon }} fs-3 text-eco"></i>{% endif %}
+    <div class="me-auto">
+      <h1 class="h4 mb-0">{{ title }}</h1>
+      {% if subtitle %}<div class="text-body-secondary small">{{ subtitle }}</div>{% endif %}
+    </div>
+    {{ caller() if caller else '' }}
+  </div>
+{%- endmacro %}

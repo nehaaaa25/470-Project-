@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, input, select, checkbox, error_alert, active_badge, post_button %}
+{% block title %}Specialist services{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+  <li class="breadcrumb-item"><a href="/special-items">Special Items</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Specialist services</li>
+</ol></nav>
+{{ page_header("Specialist services", "tools", "Verified providers that approved special-item requests are referred to.") }}
+
+{% set type_options = [] %}
+{% for t in item_types %}{% set _ = type_options.append((t.value, t.label)) %}{% endfor %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Service</th><th>Handles</th><th>Contact</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for s in services %}
+            <tr>
+              <td class="fw-semibold">{{ s.name }}{% if s.notes %}<div class="small fw-normal text-body-secondary">{{ s.notes }}</div>{% endif %}</td>
+              <td><span class="badge text-bg-light border">{{ s.type_label }}</span></td>
+              <td class="small">{{ s.contact_phone }}{% if s.email %}<br>{{ s.email }}{% endif %}</td>
+              <td>{{ active_badge(s.is_active) }}</td>
+              <td class="text-end text-nowrap">
+                <a class="btn btn-sm btn-outline-secondary" href="/special-items/services/{{ s.id }}/edit" aria-label="Edit {{ s.name }}"><i class="bi bi-pencil"></i></a>
+                {{ post_button("/special-items/services/" ~ s.id ~ "/delete", "", icon="trash", confirm="Delete " ~ s.name ~ "?") }}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-body-secondary">No specialist services yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-12 col-lg-5">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6">Add a specialist service</h2>
+        {{ error_alert(error) }}
+        <form method="post" action="/special-items/services" novalidate>
+          <div class="row g-3">
+            <div class="col-12">{{ input("name", "Service name", form, required=True, attrs='maxlength="120"') }}</div>
+            <div class="col-md-6">{{ select("service_type", "Handles", form, type_options) }}</div>
+            <div class="col-md-6">{{ input("contact_phone", "Contact phone", form, required=True) }}</div>
+            <div class="col-12">{{ input("email", "Email", form, type="email") }}</div>
+            <div class="col-12">{{ input("notes", "Notes", form, help="e.g. Licensed by DoE; charges a pickup fee") }}</div>
+            <div class="col-12">{{ checkbox("is_active", "Active (can receive referrals)", form) }}</div>
+          </div>
+          <button class="btn btn-eco mt-3" type="submit"><i class="bi bi-plus-lg"></i> Add service</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

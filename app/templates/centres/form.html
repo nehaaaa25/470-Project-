@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, checkbox, multi_check, error_alert %}
+{% block title %}{{ "Edit " ~ centre.name if centre else "Register centre" }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">{{ "Edit centre" if centre else "Register a collection centre" }}</h1>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-md-7">{{ input("name", "Centre name", form, required=True, attrs='maxlength="120"') }}</div>
+            <div class="col-md-5">{{ input("phone", "Phone", form) }}</div>
+            <div class="col-12">{{ input("address", "Address", form, required=True) }}</div>
+            <div class="col-md-7">{{ input("opening_hours", "Opening hours", form, required=True, attrs='placeholder="e.g. Sat–Thu 9:00–17:00"') }}</div>
+            <div class="col-md-5">{{ input("processing_capacity_kg", "Processing capacity (kg/day)", form, type="number", required=True, attrs='min="0" step="any"') }}</div>
+            <div class="col-6 col-md-4">{{ input("latitude", "Latitude", form, type="number", attrs='step="any" min="-90" max="90" placeholder="23.7808"') }}</div>
+            <div class="col-6 col-md-4">{{ input("longitude", "Longitude", form, type="number", attrs='step="any" min="-180" max="180" placeholder="90.4074"') }}</div>
+            <div class="col-md-4 d-flex align-items-end">{{ checkbox("is_active", "Centre is active", form) }}</div>
+            <div class="col-12">
+              <div class="form-label">Accepted materials <span class="text-danger">*</span></div>
+              {{ multi_check("material_ids", materials|pairs, form.material_ids or [],
+                             "No materials in the catalogue yet. Add them in the Sorting Guide first.") }}
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">{{ "Save changes" if centre else "Register centre" }}</button>
+            <a class="btn btn-outline-secondary" href="{{ '/centres/' ~ centre.id if centre else '/centres' }}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

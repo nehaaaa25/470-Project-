@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, textarea, select, error_alert %}
+{% block title %}{{ "Edit " ~ reward.name if reward else "Add reward" }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">{{ "Edit reward" if reward else "Add a reward" }}</h1>
+        <p class="text-body-secondary small mb-3">Sponsor: {{ sponsor.organization_name }}.
+          {% if not reward %}Stock comes from commitments, which you add on the next page.{% endif %}</p>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-md-8">{{ input("name", "Reward name", form, required=True, attrs='maxlength="120" placeholder="e.g. Reusable shopping bag"') }}</div>
+            <div class="col-md-4">{{ input("points_cost", "Points cost", form, type="number", required=True, attrs='min="1" step="1"') }}</div>
+            <div class="col-12">{{ textarea("description", "Description", form, rows=3) }}</div>
+            <div class="col-md-5">
+              {% set status_options = [] %}
+              {% for s in statuses %}{% set _ = status_options.append((s.value, s.value|capitalize)) %}{% endfor %}
+              {{ select("status", "Status", form, status_options) }}
+              <div class="form-text">Paused or expired rewards cannot be redeemed.</div>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">{{ "Save changes" if reward else "Add reward" }}</button>
+            <a class="btn btn-outline-secondary" href="/sponsors/{{ sponsor.id }}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

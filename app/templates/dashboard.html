@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h1 class="h5 mb-1">Hi, {{ current_user.name }}</h1>
+        <span class="badge bg-eco mb-3">{{ current_user.role_label }}</span>
+        <dl class="row small mb-0">
+          <dt class="col-5">Email</dt><dd class="col-7 text-break">{{ current_user.email }}</dd>
+          <dt class="col-5">Phone</dt><dd class="col-7">{{ current_user.phone or "—" }}</dd>
+          {% for label, value in profile %}
+            <dt class="col-5">{{ label }}</dt><dd class="col-7">{{ value if value is not none else "—" }}</dd>
+          {% endfor %}
+          <dt class="col-5">Joined</dt><dd class="col-7">{{ current_user.created_at.strftime("%d %b %Y") if current_user.created_at else "—" }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if has_role(current_user, 'collector') %}
+      <div class="card mt-3">
+        <div class="card-body">
+          <h2 class="h6"><i class="bi bi-geo-alt text-eco"></i> Your service zones</h2>
+          {% for z in current_user.zones %}
+            <div class="mb-2">
+              <strong>{{ z.name }}</strong> {% if not z.is_active %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}
+              <div class="small text-body-secondary">{{ z.area_description or "" }}</div>
+            </div>
+          {% else %}
+            <p class="small text-body-secondary mb-0">You have not been assigned to a zone yet. Ask a manager.</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-12 col-lg-8">
+    {% if stats %}
+      <div class="row g-3 mb-4">
+        {% for s in stats %}
+          <div class="col-6 col-md-4">
+            {% if s.url %}<a class="card h-100 text-decoration-none feature-card" href="{{ s.url }}">{% else %}<div class="card h-100">{% endif %}
+              <div class="card-body py-3">
+                <div class="fs-3 fw-semibold text-eco">{{ s.value }}</div>
+                <div class="small text-body-secondary">{{ s.label }}</div>
+              </div>
+            {% if s.url %}</a>{% else %}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <h2 class="h5 mb-3">Your features</h2>
+    {% set only_allowed = true %}
+    {% include "_feature_cards.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, checkbox, select, multi_check, error_alert %}
+{% block title %}Manage {{ collector.name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Manage collector</h1>
+        <p class="text-body-secondary small mb-3">{{ collector.email }}</p>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">{{ input("name", "Full name", form, required=True) }}</div>
+            <div class="col-md-6">{{ input("phone", "Phone", form) }}</div>
+            <div class="col-md-6">{{ input("vehicle_no", "Vehicle number", form) }}</div>
+            <div class="col-md-6">
+              {% set avail_options = [] %}
+              {% for a in availability %}{% set _ = avail_options.append((a, a|replace('_', ' ')|capitalize)) %}{% endfor %}
+              {{ select("availability_status", "Availability", form, avail_options) }}
+            </div>
+            <div class="col-12">{{ checkbox("is_active", "Account is active", form, help="Inactive collectors cannot log in.") }}</div>
+            <div class="col-12">
+              <div class="form-label">Service zones</div>
+              {{ multi_check("zone_ids", zones|pairs, form.zone_ids or [], "No zones yet.") }}
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">Save changes</button>
+            <a class="btn btn-outline-secondary" href="/zones#collectors">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

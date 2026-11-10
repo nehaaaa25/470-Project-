@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Create an account</h1>
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post" action="/register" novalidate>
+          <div class="mb-3">
+            <label class="form-label" for="role">I am a</label>
+            <select class="form-select" id="role" name="role">
+              {% for r in roles %}
+                <option value="{{ r.value }}" {% if form.role == r.value %}selected{% endif %}>{{ r.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" for="name">Full name</label>
+              <input class="form-control" id="name" name="name" value="{{ form.name or '' }}" required autocomplete="name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="phone">Phone <span class="text-body-secondary">(optional)</span></label>
+              <input class="form-control" id="phone" name="phone" value="{{ form.phone or '' }}" autocomplete="tel">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="email">Email</label>
+              <input class="form-control" type="email" id="email" name="email" value="{{ form.email or '' }}" required autocomplete="email">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="password">Password</label>
+              <input class="form-control" type="password" id="password" name="password" minlength="8" maxlength="72" required autocomplete="new-password">
+              <div class="form-text">At least 8 characters.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="confirm_password">Repeat password</label>
+              <input class="form-control" type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+            </div>
+          </div>
+
+          <!-- Role-specific fields: app.js shows only the block for the chosen role -->
+          <fieldset class="role-fields mt-3" data-role="resident">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label" for="address">Address</label>
+                <input class="form-control" id="address" name="address" value="{{ form.address or '' }}" autocomplete="street-address">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="resident_type">Type</label>
+                <select class="form-select" id="resident_type" name="resident_type">
+                  {% for t in resident_types %}
+                    <option value="{{ t }}" {% if form.resident_type == t %}selected{% endif %}>{{ t|title }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="role-fields mt-3" data-role="recycler">
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label class="form-label" for="company_name">Company name</label>
+                <input class="form-control" id="company_name" name="company_name" value="{{ form.company_name or '' }}" autocomplete="organization">
+              </div>
+              <div class="col-md-5">
+                <label class="form-label" for="trade_license_no">Trade licence no. <span class="text-body-secondary">(optional)</span></label>
+                <input class="form-control" id="trade_license_no" name="trade_license_no" value="{{ form.trade_license_no or '' }}">
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="role-fields mt-3" data-role="sponsor">
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label class="form-label" for="organization_name">Organisation name</label>
+                <input class="form-control" id="organization_name" name="organization_name" value="{{ form.organization_name or '' }}" autocomplete="organization">
+              </div>
+              <div class="col-md-5">
+                <label class="form-label" for="contact_person">Contact person <span class="text-body-secondary">(optional)</span></label>
+                <input class="form-control" id="contact_person" name="contact_person" value="{{ form.contact_person or '' }}">
+              </div>
+            </div>
+          </fieldset>
+
+          <button class="btn btn-eco w-100 mt-4" type="submit">Create account</button>
+        </form>
+        <p class="small text-center mt-3 mb-0">Already registered? <a href="/login">Log in</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

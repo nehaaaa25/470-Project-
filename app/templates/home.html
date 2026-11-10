@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="p-4 p-md-5 mb-4 rounded-3 hero">
+  <h1 class="display-6 fw-semibold">Cleaner neighbourhoods, one pickup at a time</h1>
+  <p class="lead mb-4">Sort your waste, book collections, and earn eco-points for recycling.</p>
+  {% if current_user %}
+    <a class="btn btn-eco btn-lg" href="/dashboard">Go to dashboard</a>
+  {% else %}
+    <a class="btn btn-eco btn-lg me-2" href="/register">Create an account</a>
+    <a class="btn btn-outline-secondary btn-lg" href="/login">Log in</a>
+  {% endif %}
+</div>
+
+<h2 class="h5 mb-3">Sprint 1 features</h2>
+{% include "_feature_cards.html" %}
+{% endblock %}

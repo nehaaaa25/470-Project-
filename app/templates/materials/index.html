@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header %}
+{% block title %}Sorting Guide{% endblock %}
+{% block content %}
+{% call page_header("Waste Sorting Guide", "recycle", "Find a material, see which bin it goes in and how to prepare it.") %}
+  {% if has_role(current_user, 'administrator') %}
+    <a class="btn btn-outline-secondary btn-sm" href="/materials/bins"><i class="bi bi-trash3"></i> Bin types</a>
+    <a class="btn btn-eco btn-sm" href="/materials/new"><i class="bi bi-plus-lg"></i> Add material</a>
+  {% endif %}
+{% endcall %}
+
+<form class="row g-2 mb-3" method="get" action="/materials" role="search">
+  <div class="col-12 col-md-7">
+    <label class="visually-hidden" for="q">Search</label>
+    <input class="form-control" id="q" name="q" value="{{ q }}" placeholder="Search e.g. bottle, newspaper, rinse…">
+  </div>
+  <div class="col-8 col-md-3">
+    <label class="visually-hidden" for="bin">Bin</label>
+    <select class="form-select" id="bin" name="bin">
+      <option value="">All bins</option>
+      {% for b in bin_types %}<option value="{{ b.id }}" {% if bin_id == b.id %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-4 col-md-2 d-grid">
+    <button class="btn btn-eco" type="submit"><i class="bi bi-search"></i> Search</button>
+  </div>
+</form>
+
+{% if bin_types %}
+  <div class="d-flex flex-wrap gap-3 small mb-3">
+    {% for b in bin_types %}
+      <span title="{{ b.description or '' }}"><span class="bin-swatch" style="background: {{ b.colour }}"></span> {{ b.name }}</span>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if q or bin_id %}
+  <p class="small text-body-secondary">{{ categories|length }} result{{ '' if categories|length == 1 else 's' }}
+    {% if q %}for “{{ q }}”{% endif %} · <a href="/materials">Clear</a></p>
+{% endif %}
+
+<div class="row g-3">
+  {% for c in categories %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <h2 class="h6 mb-0 me-auto"><a class="stretched-link text-body text-decoration-none" href="/materials/{{ c.id }}">{{ c.name }}</a></h2>
+            {% if c.is_recyclable %}<span class="badge text-bg-success">Recyclable</span>{% else %}<span class="badge text-bg-secondary">Not recyclable</span>{% endif %}
+          </div>
+          {% if c.bin_type %}
+            <div class="small mb-2"><span class="bin-swatch" style="background: {{ c.bin_type.colour }}"></span> {{ c.bin_type.name }}</div>
+          {% endif %}
+          {% if c.examples %}<p class="small text-body-secondary mb-2">e.g. {{ c.examples }}</p>{% endif %}
+          {% if c.instructions %}
+            <ol class="small mb-0 ps-3">
+              {% for s in c.instructions[:3] %}<li>{{ s.instruction }}</li>{% endfor %}
+            </ol>
+            {% if c.instructions|length > 3 %}<div class="small text-body-secondary">+ {{ c.instructions|length - 3 }} more step(s)</div>{% endif %}
+          {% endif %}
+        </div>
+        {% if c.is_recyclable and c.points_per_kg %}
+          <div class="card-footer small text-body-secondary"><i class="bi bi-star"></i> {{ c.points_per_kg }} eco-points per kg</div>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="col-12">
+      <div class="text-center text-body-secondary py-5">
+        <i class="bi bi-search display-6"></i>
+        <p class="mt-2 mb-0">{% if q or bin_id %}No materials match your search. Try a different word.{% else %}The catalogue is empty.{% endif %}</p>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, active_badge %}
+{% block title %}Collection Centres{% endblock %}
+{% block content %}
+{% call page_header("Collection Centres", "building", "Where to take your sorted waste: accepted materials, capacity and opening hours.") %}
+  {% if has_role(current_user, 'administrator') %}
+    <a class="btn btn-eco btn-sm" href="/centres/new"><i class="bi bi-plus-lg"></i> Register centre</a>
+  {% endif %}
+{% endcall %}
+
+<form class="row g-2 mb-3" method="get" action="/centres" role="search">
+  <div class="col-12 col-md-6">
+    <label class="visually-hidden" for="q">Search</label>
+    <input class="form-control" id="q" name="q" value="{{ q }}" placeholder="Search by name or address">
+  </div>
+  <div class="col-8 col-md-4">
+    <label class="visually-hidden" for="material">Accepts material</label>
+    <select class="form-select" id="material" name="material">
+      <option value="">Any material</option>
+      {% for m in materials %}<option value="{{ m.id }}" {% if material_id == m.id %}selected{% endif %}>Accepts {{ m.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-4 col-md-2 d-grid">
+    <button class="btn btn-eco" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for c in centres %}
+    <div class="col-12 col-md-6">
+      <div class="card h-100 {% if not c.is_active %}border-secondary-subtle opacity-75{% endif %}">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-2">
+            <h2 class="h6 mb-1 me-auto"><a class="stretched-link text-body text-decoration-none" href="/centres/{{ c.id }}">{{ c.name }}</a></h2>
+            {% if not c.is_active %}{{ active_badge(false) }}{% endif %}
+          </div>
+          <div class="small text-body-secondary mb-2"><i class="bi bi-geo"></i> {{ c.address }}</div>
+          <div class="small mb-2">
+            <i class="bi bi-clock"></i> {{ c.opening_hours }}
+            <span class="ms-3"><i class="bi bi-speedometer"></i> {{ "{:,.0f}".format(c.processing_capacity_kg) }} kg/day</span>
+          </div>
+          <div>
+            {% for m in c.materials %}<span class="badge rounded-pill text-bg-light border me-1">{{ m.name }}</span>{% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="col-12 text-center text-body-secondary py-5">
+      <i class="bi bi-building display-6"></i>
+      <p class="mt-2 mb-0">{% if q or material_id %}No centres match this filter.{% else %}No centres registered yet.{% endif %}</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

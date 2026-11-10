@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, textarea, checkbox, select, error_alert %}
+{% block title %}{{ "Edit " ~ category.name if category else "Add material" }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">{{ "Edit " ~ category.name if category else "Add a material category" }}</h1>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-md-7">{{ input("name", "Name", form, required=True, attrs='maxlength="80"') }}</div>
+            <div class="col-md-5">
+              {{ select("bin_type_id", "Bin type", form, bin_types|pairs, required=False, blank="— none —") }}
+              {% if not bin_types %}<div class="form-text"><a href="/materials/bins">Add bin types first</a></div>{% endif %}
+            </div>
+            <div class="col-12">{{ input("examples", "Examples", form, help="Comma-separated, e.g. newspaper, cereal boxes, magazines") }}</div>
+            <div class="col-12">{{ textarea("description", "Description", form, rows=3) }}</div>
+            <div class="col-md-6 d-flex align-items-end">{{ checkbox("is_recyclable", "This material is recyclable", form) }}</div>
+            <div class="col-md-6">{{ input("points_per_kg", "Eco-points per kg", form, type="number", required=True, attrs='min="0" step="1"') }}</div>
+            {% if not category %}
+              <div class="col-12">{{ textarea("steps", "Preparation steps", form, rows=4, help="One step per line, e.g. Rinse • Flatten • Let it dry. You can edit steps later too.") }}</div>
+            {% endif %}
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">{{ "Save changes" if category else "Add material" }}</button>
+            <a class="btn btn-outline-secondary" href="{{ '/materials/' ~ category.id if category else '/materials' }}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

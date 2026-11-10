@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import input, multi_check, error_alert %}
+{% block title %}Register collector{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Register a waste collector</h1>
+        <p class="text-body-secondary small">This creates a Collector account. Share the email and password with the collector so they can log in.</p>
+        {{ error_alert(error) }}
+        <form method="post" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">{{ input("name", "Full name", form, required=True, attrs='autocomplete="off"') }}</div>
+            <div class="col-md-6">{{ input("phone", "Phone", form) }}</div>
+            <div class="col-md-7">{{ input("email", "Email", form, type="email", required=True, attrs='autocomplete="off"') }}</div>
+            <div class="col-md-5">{{ input("vehicle_no", "Vehicle number", form) }}</div>
+            <div class="col-md-6">
+              <label class="form-label" for="password">Password</label>
+              <input class="form-control" type="password" id="password" name="password" minlength="8" maxlength="72" required autocomplete="new-password">
+              <div class="form-text">At least 8 characters.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="confirm_password">Repeat password</label>
+              <input class="form-control" type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+            </div>
+            <div class="col-12">
+              <div class="form-label">Service zones</div>
+              {{ multi_check("zone_ids", zones|pairs, form.zone_ids or [], "No zones yet. You can assign zones later.") }}
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-eco" type="submit">Register collector</button>
+            <a class="btn btn-outline-secondary" href="/zones#collectors">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

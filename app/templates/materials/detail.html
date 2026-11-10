@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, post_button %}
+{% block title %}{{ category.name }}{% endblock %}
+{% block content %}
+{% set admin = has_role(current_user, 'administrator') %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+  <li class="breadcrumb-item"><a href="/materials">Sorting Guide</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+</ol></nav>
+
+{% call page_header(category.name, "recycle") %}
+  {% if admin %}
+    <a class="btn btn-outline-secondary btn-sm" href="/materials/{{ category.id }}/edit"><i class="bi bi-pencil"></i> Edit</a>
+    {{ post_button("/materials/" ~ category.id ~ "/delete", "Delete", icon="trash",
+                   confirm="Delete " ~ category.name ~ " and all its preparation steps?") }}
+  {% endif %}
+{% endcall %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-5">
+    <div class="card">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5">Recyclable</dt>
+          <dd class="col-7">{% if category.is_recyclable %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-secondary">No</span>{% endif %}</dd>
+          <dt class="col-5">Bin</dt>
+          <dd class="col-7">
+            {% if category.bin_type %}<span class="bin-swatch" style="background: {{ category.bin_type.colour }}"></span> {{ category.bin_type.name }}
+            {% else %}—{% endif %}
+          </dd>
+          <dt class="col-5">Eco-points</dt><dd class="col-7">{{ category.points_per_kg }} per kg</dd>
+          {% if category.examples %}<dt class="col-5">Examples</dt><dd class="col-7">{{ category.examples }}</dd>{% endif %}
+        </dl>
+        {% if category.description %}<hr><p class="mb-0" style="white-space: pre-line">{{ category.description }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-7" id="steps">
+    <h2 class="h5">How to prepare it</h2>
+    {% if category.instructions %}
+      <ol class="list-group list-group-numbered mb-3">
+        {% for s in category.instructions %}
+          <li class="list-group-item d-flex align-items-start gap-2">
+            <div class="ms-1 me-auto">{{ s.instruction }}</div>
+            {% if admin %}
+              <div class="d-flex gap-1 flex-shrink-0">
+                {% if not loop.first %}
+                  <form method="post" action="/materials/{{ category.id }}/steps/{{ s.id }}/move" class="d-inline">
+                    <input type="hidden" name="direction" value="up">
+                    <button class="btn btn-sm btn-outline-secondary" title="Move up" aria-label="Move step up"><i class="bi bi-arrow-up"></i></button>
+                  </form>
+                {% endif %}
+                {% if not loop.last %}
+                  <form method="post" action="/materials/{{ category.id }}/steps/{{ s.id }}/move" class="d-inline">
+                    <input type="hidden" name="direction" value="down">
+                    <button class="btn btn-sm btn-outline-secondary" title="Move down" aria-label="Move step down"><i class="bi bi-arrow-down"></i></button>
+                  </form>
+                {% endif %}
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#edit-step-{{ s.id }}" aria-label="Edit step"><i class="bi bi-pencil"></i></button>
+                {{ post_button("/materials/" ~ category.id ~ "/steps/" ~ s.id ~ "/delete", "", icon="x-lg", confirm="Delete this step?") }}
+              </div>
+            {% endif %}
+          </li>
+          {% if admin %}
+            <li class="list-group-item collapse bg-body-tertiary" id="edit-step-{{ s.id }}">
+              <form method="post" action="/materials/{{ category.id }}/steps/{{ s.id }}/edit" class="d-flex gap-2">
+                <input class="form-control form-control-sm" name="instruction" value="{{ s.instruction }}" maxlength="255" aria-label="Step text" required>
+                <button class="btn btn-sm btn-eco" type="submit">Save</button>
+              </form>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p class="text-body-secondary">No preparation steps yet.</p>
+    {% endif %}
+
+    {% if admin %}
+      <form method="post" action="/materials/{{ category.id }}/steps" class="d-flex gap-2">
+        <label class="visually-hidden" for="new-step">New step</label>
+        <input class="form-control" id="new-step" name="instruction" placeholder="Add a step, e.g. Rinse and let it dry" maxlength="255" required>
+        <button class="btn btn-eco text-nowrap" type="submit"><i class="bi bi-plus-lg"></i> Add step</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
