@@ -9,16 +9,21 @@ MVC files for this feature:
 Everyone (even logged-out visitors) can browse and search the guide.
 Only administrators can add, edit or delete categories, steps and bin types.
 
-Note: fixed paths like /materials/bins and /materials/new are declared before
+The AI waste scanner (/materials/scan) lets a logged-in user photograph an item and jump to its guide;
+the AI part lives in app/services/waste_scan_service.py.
+
+Note: fixed paths like /materials/bins, /materials/scan and /materials/new are declared before
 /materials/{category_id}, so they are matched first.
 """
+import base64
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse
 
-from app.dependencies import AdminUser, DbSession, found
+from app.dependencies import AdminUser, DbSession, LoggedInUser, found
 from app.services import material_service as svc
+from app.services import waste_scan_service as scanner
 from app.services.validation import ServiceError
 from app.templating import flash, render
 
@@ -27,6 +32,7 @@ router = APIRouter(prefix="/materials", tags=["#4 Materials"])
 # Form fields default to "" so a missing field gives a friendly message from the service, not a raw 422 error.
 Text = Annotated[str, Form()]
 OptionalText = Text
+Checkbox = Annotated[bool, Form()]  # an unticked checkbox is not sent at all, so it defaults to False
 
 
 def _go(url: str) -> RedirectResponse:
@@ -104,6 +110,27 @@ def bin_delete(request: Request, db: DbSession, admin: AdminUser, bin_id: int):
     return _go("/materials/bins")
 
 
+# ---------- AI waste scanner (any logged-in user) ----------
+# Login is required so visitors cannot use up the free AI quota.
+
+
+@router.get("/scan")
+def scan_page(request: Request, user: LoggedInUser):
+    return render(request, "materials/scan.html", {})
+
+
+@router.post("/scan")
+def scan_photo(request: Request, db: DbSession, user: LoggedInUser,
+               photo: Annotated[UploadFile | None, File()] = None):
+    try:
+        result = scanner.scan(db, photo)
+    except ServiceError as e:
+        return render(request, "materials/scan.html", {"error": str(e)}, status_code=400)
+    # Show the photo back to the user without saving it anywhere.
+    preview = f"data:{result.image.mime_type};base64,{base64.b64encode(result.image.data).decode()}"
+    return render(request, "materials/scan.html", {"result": result, "preview": preview})
+
+
 # ---------- Categories (admin) ----------
 
 
@@ -121,11 +148,12 @@ def category_new_page(request: Request, db: DbSession, admin: AdminUser):
 def category_create(
     request: Request, db: DbSession, admin: AdminUser,
     name: Text = "", description: OptionalText = "", examples: OptionalText = "",
-    is_recyclable: Annotated[bool, Form()] = False, points_per_kg: Text = "0",
+    is_recyclable: Checkbox = False, is_biodegradable: Checkbox = False, points_per_kg: Text = "0",
     bin_type_id: OptionalText = "", steps: OptionalText = "",
 ):
     form = {"name": name, "description": description, "examples": examples, "is_recyclable": is_recyclable,
-            "points_per_kg": points_per_kg, "bin_type_id": bin_type_id, "steps": steps}
+            "is_biodegradable": is_biodegradable, "points_per_kg": points_per_kg, "bin_type_id": bin_type_id,
+            "steps": steps}
     try:
         category = svc.save_category(db, None, **form)
     except ServiceError as e:
@@ -145,7 +173,8 @@ def category_edit_page(request: Request, db: DbSession, admin: AdminUser, catego
     c = found(svc.get_category(db, category_id), "Material")
     form = {
         "name": c.name, "description": c.description or "", "examples": c.examples or "",
-        "is_recyclable": c.is_recyclable, "points_per_kg": c.points_per_kg, "bin_type_id": c.bin_type_id or "",
+        "is_recyclable": c.is_recyclable, "is_biodegradable": c.is_biodegradable,
+        "points_per_kg": c.points_per_kg, "bin_type_id": c.bin_type_id or "",
     }
     return _category_form(request, db, category=c, form=form)
 
@@ -154,11 +183,12 @@ def category_edit_page(request: Request, db: DbSession, admin: AdminUser, catego
 def category_edit(
     request: Request, db: DbSession, admin: AdminUser, category_id: int,
     name: Text = "", description: OptionalText = "", examples: OptionalText = "",
-    is_recyclable: Annotated[bool, Form()] = False, points_per_kg: Text = "0", bin_type_id: OptionalText = "",
+    is_recyclable: Checkbox = False, is_biodegradable: Checkbox = False, points_per_kg: Text = "0",
+    bin_type_id: OptionalText = "",
 ):
     category = found(svc.get_category(db, category_id), "Material")
     form = {"name": name, "description": description, "examples": examples, "is_recyclable": is_recyclable,
-            "points_per_kg": points_per_kg, "bin_type_id": bin_type_id}
+            "is_biodegradable": is_biodegradable, "points_per_kg": points_per_kg, "bin_type_id": bin_type_id}
     try:
         svc.save_category(db, category, **form)
     except ServiceError as e:

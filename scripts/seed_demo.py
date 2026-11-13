@@ -77,6 +77,8 @@ MATERIALS = [
      ["Tape over the terminals", "Store in a dry box until drop-off"]),
 ]
 
+BIODEGRADABLE = {"Paper & Cardboard", "Food & Garden Waste"}
+
 ZONES = [
     ("Mohakhali", "Mohakhali DOHS, Wireless Gate, TB Gate area"),
     ("Gulshan-1", "Gulshan Circle-1, Roads 1-30"),
@@ -114,7 +116,8 @@ def seed_reference_data(db: Session) -> None:
     for name, bin_name, recyclable, points, examples, desc, steps in MATERIALS:
         if not _by_name(db, MaterialCategory, name):
             category = MaterialCategory(
-                name=name, is_recyclable=recyclable, points_per_kg=points, examples=examples, description=desc,
+                name=name, is_recyclable=recyclable, is_biodegradable=name in BIODEGRADABLE,
+                points_per_kg=points, examples=examples, description=desc,
                 bin_type=_by_name(db, BinType, bin_name),
             )
             category.instructions = [PreparationInstruction(step_no=i, instruction=s) for i, s in enumerate(steps, 1)]

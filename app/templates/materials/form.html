@@ -17,7 +17,10 @@
             </div>
             <div class="col-12">{{ input("examples", "Examples", form, help="Comma-separated, e.g. newspaper, cereal boxes, magazines") }}</div>
             <div class="col-12">{{ textarea("description", "Description", form, rows=3) }}</div>
-            <div class="col-md-6 d-flex align-items-end">{{ checkbox("is_recyclable", "This material is recyclable", form) }}</div>
+            <div class="col-md-6 d-flex flex-column justify-content-end gap-1">
+              {{ checkbox("is_recyclable", "This material is recyclable", form) }}
+              {{ checkbox("is_biodegradable", "This material is biodegradable", form, help="Breaks down naturally, e.g. food scraps, paper, leaves.") }}
+            </div>
             <div class="col-md-6">{{ input("points_per_kg", "Eco-points per kg", form, type="number", required=True, attrs='min="0" step="1"') }}</div>
             {% if not category %}
               <div class="col-12">{{ textarea("steps", "Preparation steps", form, rows=4, help="One step per line, e.g. Rinse • Flatten • Let it dry. You can edit steps later too.") }}</div>

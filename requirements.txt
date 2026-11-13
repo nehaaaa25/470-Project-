@@ -11,4 +11,5 @@ itsdangerous==2.2.0
 python-dotenv==1.2.4
 pydantic-settings==2.16.2
 httpx==0.28.1
+google-genai==3.3.0
 pytest==9.2.0

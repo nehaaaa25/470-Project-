@@ -18,13 +18,11 @@ from sqlalchemy.orm import Session, selectinload
 from app.config import UPLOAD_DIR
 from app.models import ItemType, RequestStatus, Resident, Role, SpecialistService, SpecialItemRequest, User
 from app.services import validation as v
+from app.services.images import read_image
 from app.services.validation import ServiceError
 
 REVIEWER_ROLES = (Role.MANAGER, Role.ADMINISTRATOR)
 PHOTO_DIR = UPLOAD_DIR / "special_items"
-MAX_PHOTO_BYTES = 5 * 1024 * 1024
-# File signatures ("magic bytes"), so a renamed .exe cannot pose as a photo.
-PHOTO_SIGNATURES = {b"\xff\xd8\xff": ".jpg", b"\x89PNG\r\n\x1a\n": ".png"}
 
 
 def is_reviewer(user: User) -> bool:
@@ -134,17 +132,10 @@ def photo_file(request: SpecialItemRequest):
 
 
 def _save_photo(photo: UploadFile) -> str:
-    data = photo.file.read(MAX_PHOTO_BYTES + 1)
-    if len(data) > MAX_PHOTO_BYTES:
-        raise ServiceError("The photo must be 5 MB or smaller.")
-    ext = next((e for sig, e in PHOTO_SIGNATURES.items() if data.startswith(sig)), None)
-    if ext is None and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        ext = ".webp"
-    if ext is None:
-        raise ServiceError("The photo must be a JPG, PNG or WEBP image.")
+    image = read_image(photo)  # size limit + real file type check
     PHOTO_DIR.mkdir(parents=True, exist_ok=True)
-    name = secrets.token_hex(16) + ext  # random name: never trust the uploaded file name
-    (PHOTO_DIR / name).write_bytes(data)
+    name = secrets.token_hex(16) + image.ext  # random name: never trust the uploaded file name
+    (PHOTO_DIR / name).write_bytes(image.data)
     return name
 
 

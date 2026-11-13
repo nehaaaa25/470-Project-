@@ -23,6 +23,8 @@
         <dl class="row mb-0">
           <dt class="col-5">Recyclable</dt>
           <dd class="col-7">{% if category.is_recyclable %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-secondary">No</span>{% endif %}</dd>
+          <dt class="col-5">Biodegradable</dt>
+          <dd class="col-7">{% if category.is_biodegradable %}<span class="badge text-bg-success">Yes</span>{% else %}<span class="badge text-bg-secondary">No</span>{% endif %}</dd>
           <dt class="col-5">Bin</dt>
           <dd class="col-7">
             {% if category.bin_type %}<span class="bin-swatch" style="background: {{ category.bin_type.colour }}"></span> {{ category.bin_type.name }}

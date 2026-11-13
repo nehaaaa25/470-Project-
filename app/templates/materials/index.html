@@ -3,6 +3,7 @@
 {% block title %}Sorting Guide{% endblock %}
 {% block content %}
 {% call page_header("Waste Sorting Guide", "recycle", "Find a material, see which bin it goes in and how to prepare it.") %}
+  <a class="btn btn-eco btn-sm" href="/materials/scan"><i class="bi bi-camera"></i> Scan an item</a>
   {% if has_role(current_user, 'administrator') %}
     <a class="btn btn-outline-secondary btn-sm" href="/materials/bins"><i class="bi bi-trash3"></i> Bin types</a>
     <a class="btn btn-eco btn-sm" href="/materials/new"><i class="bi bi-plus-lg"></i> Add material</a>
@@ -46,6 +47,7 @@
         <div class="card-body">
           <div class="d-flex align-items-start gap-2 mb-2">
             <h2 class="h6 mb-0 me-auto"><a class="stretched-link text-body text-decoration-none" href="/materials/{{ c.id }}">{{ c.name }}</a></h2>
+            {% if c.is_biodegradable %}<span class="badge text-bg-warning">Biodegradable</span>{% endif %}
             {% if c.is_recyclable %}<span class="badge text-bg-success">Recyclable</span>{% else %}<span class="badge text-bg-secondary">Not recyclable</span>{% endif %}
           </div>
           {% if c.bin_type %}

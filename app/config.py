@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     db_user: str = "ecowaste_app"
     db_password: str = ""
 
+    # AI waste scanner (Google Gemini, free tier). Get a key at https://aistudio.google.com/apikey
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.5-flash-lite"
+
     # Optional full override, e.g. "sqlite:///test.db" for quick tests.
     database_url: str | None = None
 

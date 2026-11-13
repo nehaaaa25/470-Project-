@@ -31,6 +31,8 @@ class MaterialCategory(Base):
     description: Mapped[str | None] = mapped_column(Text)
     examples: Mapped[str | None] = mapped_column(String(255))  # e.g. "newspaper, cereal boxes"
     is_recyclable: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Breaks down naturally (food, paper, leaves). Set by the admin; the AI scanner shows it.
+    is_biodegradable: Mapped[bool] = mapped_column(Boolean, default=False)
     points_per_kg: Mapped[int] = mapped_column(Integer, default=0)
     bin_type_id: Mapped[int | None] = mapped_column(ForeignKey("bin_types.id", ondelete="SET NULL"))
 

@@ -89,6 +89,7 @@ def save_category(
     points_per_kg: str,
     bin_type_id: str,
     steps: str = "",
+    is_biodegradable: bool = False,
 ) -> MaterialCategory:
     """Create (category=None) or update a category.
     `steps` is only used when creating: one preparation step per line."""
@@ -111,6 +112,7 @@ def save_category(
     category = category or MaterialCategory()
     category.name, category.description, category.examples = name, description, examples
     category.is_recyclable, category.points_per_kg, category.bin_type_id = is_recyclable, points, bin_id
+    category.is_biodegradable = is_biodegradable
     if is_new:
         for line in steps.splitlines():
             line = line.strip()

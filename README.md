@@ -34,14 +34,15 @@ Shared pieces you will reuse:
 
 | Feature | Visitors & everyone | Resident | Collector | Sponsor | Manager | Administrator |
 |---|---|---|---|---|---|---|
-| #4 Sorting guide | Browse and search | ✓ | ✓ | ✓ | ✓ | + manage categories, steps, bin types |
+| #4 Sorting guide | Browse and search | ✓ + AI photo scan | ✓ + AI photo scan | ✓ + AI photo scan | ✓ + AI photo scan | + manage categories, steps, bin types |
 | #10 Zones | — | — | Sees own zones on dashboard | — | Manage zones, register/manage collectors | Same as manager |
 | #14 Centres | Browse active centres, filter by material | ✓ | ✓ | ✓ | ✓ | + register, edit, deactivate, delete; sees inactive |
 | #20 Sponsors | — | — | — | Views own rewards and commitments | — | Register/manage sponsors, rewards, commitments |
 | #5 Special items | — | Submit, track, cancel own requests | — | — | Review (approve + refer / reject), manage specialist services | Same as manager |
 
 ### Main business rules
-- **#4:** names are unique (case-insensitive); non-recyclable materials earn 0 points; steps are numbered 1..n and renumber after a delete; a bin type in use cannot be deleted; deleting a category deletes its steps (composition).
+- **#4 AI waste scanner** (`/materials/scan`, any logged-in user): the user takes or uploads a photo; Google Gemini picks **one category from our own guide** (or "unknown"), and the page shows that category's bin, biodegradable/recyclable status and preparation steps from the database. The AI never writes the advice itself. Photos are checked like special-item photos, sent to Gemini and **not stored**. Login is required so visitors cannot use up the free AI quota. Code: `services/waste_scan_service.py`; tests fake the AI, so they run offline.
+- **#4:** names are unique (case-insensitive); each material has a biodegradable flag set by the admin; non-recyclable materials earn 0 points; steps are numbered 1..n and renumber after a delete; a bin type in use cannot be deleted; deleting a category deletes its steps (composition).
 - **#10:** unique zone names; collectors are created by staff (no self-registration); an inactive collector cannot log in; deleting a zone keeps its collectors.
 - **#14:** capacity must be > 0; at least one accepted material; latitude and longitude are both given or both empty; inactive centres are hidden from the public.
 - **#20:** commitment end date ≥ start date and quantity ≥ 1; each commitment adds to the reward's stock; removing one can never make stock negative; a reward is redeemable only if active, in stock and covered by a currently valid commitment.
@@ -58,6 +59,7 @@ Shared pieces you will reuse:
    copy .env.example .env
    ```
 3. Open `.env` and set `DB_PASSWORD` and a random `SECRET_KEY`. You can generate the key with `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+   For the AI waste scanner, also set `GEMINI_API_KEY` (free key from https://aistudio.google.com/apikey). Without it the rest of the app works and the scanner page explains what is missing.
 4. Create the MySQL database and app user. The script asks for the MySQL **root** password (hidden):
    ```bash
    python -m scripts.setup_mysql

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "_macros.html" import page_header, error_alert %}
+{% block title %}Scan an item{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+  <li class="breadcrumb-item"><a href="/materials">Sorting Guide</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Scan an item</li>
+</ol></nav>
+
+{% call page_header("Scan an item", "camera", "Take a photo of your waste. We will tell you what it is, whether it is biodegradable and how to sort it.") %}{% endcall %}
+
+<div class="row g-4">
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        {{ error_alert(error) }}
+        <form method="post" action="/materials/scan" enctype="multipart/form-data" id="scan-form">
+          <label class="form-label" for="photo">Photo of the item</label>
+          {# capture="environment" opens the back camera on phones; on a laptop it opens the file picker. #}
+          <input class="form-control" type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp"
+                 capture="environment" required>
+          <div class="form-text">JPG, PNG or WEBP, up to 5 MB. One item per photo works best.</div>
+          <button class="btn btn-eco w-100 mt-3" type="submit" id="scan-button">
+            <i class="bi bi-stars"></i> Scan
+          </button>
+        </form>
+        <p class="small text-body-secondary mt-3 mb-0">
+          <i class="bi bi-shield-lock"></i> Your photo is sent to Google Gemini to recognise the item.
+          EcoWaste does not save it.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-7">
+    {% if result %}
+      {% set c = result.category %}
+      <div class="card shadow-sm" id="scan-result">
+        <div class="row g-0">
+          <div class="col-4">
+            <img src="{{ preview }}" class="img-fluid rounded-start h-100 object-fit-cover" alt="Your photo">
+          </div>
+          <div class="col-8">
+            <div class="card-body">
+              {% if result.item %}<p class="small text-body-secondary mb-1">We see: {{ result.item }}</p>{% endif %}
+              {% if c %}
+                <h2 class="h5 mb-2">{{ c.name }}</h2>
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                  {% if c.is_biodegradable %}<span class="badge text-bg-warning">Biodegradable</span>
+                  {% else %}<span class="badge text-bg-dark">Non-biodegradable</span>{% endif %}
+                  {% if c.is_recyclable %}<span class="badge text-bg-success">Recyclable</span>
+                  {% else %}<span class="badge text-bg-secondary">Not recyclable</span>{% endif %}
+                  <span class="badge text-bg-light border">Confidence: {{ result.confidence }}</span>
+                </div>
+                {% if c.bin_type %}
+                  <p class="mb-2"><span class="bin-swatch" style="background: {{ c.bin_type.colour }}"></span>
+                    Put it in the <strong>{{ c.bin_type.name }}</strong></p>
+                {% endif %}
+                {% if result.reason %}<p class="small mb-0">{{ result.reason }}</p>{% endif %}
+              {% else %}
+                <h2 class="h5 mb-2">We couldn't match this item</h2>
+                <p class="small mb-2">{{ result.reason or "It does not fit any material in the guide." }}</p>
+                <p class="small mb-0">Try a clearer photo of a single item, or <a href="/materials">search the guide</a>.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if c %}
+        <div class="card mt-3">
+          <div class="card-body">
+            <h3 class="h6">How to prepare it</h3>
+            {% if c.instructions %}
+              <ol class="small mb-3 ps-3">{% for s in c.instructions %}<li>{{ s.instruction }}</li>{% endfor %}</ol>
+            {% else %}
+              <p class="small text-body-secondary">No preparation steps yet.</p>
+            {% endif %}
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-sm btn-eco" href="/materials/{{ c.id }}">Open the full guide</a>
+              <a class="btn btn-sm btn-outline-secondary" href="/materials">Not right? Browse the guide</a>
+            </div>
+          </div>
+        </div>
+        {% if result.confidence == "low" %}
+          <div class="alert alert-warning small mt-3 mb-0">The scanner is not sure about this one. Please check the guide before sorting.</div>
+        {% endif %}
+      {% endif %}
+    {% else %}
+      <div class="text-center text-body-secondary py-5 border rounded">
+        <i class="bi bi-camera display-6"></i>
+        <p class="mt-2 mb-0">Your result will appear here.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Stop double submits and show that the AI is working (it can take a few seconds).
+  document.getElementById("scan-form").addEventListener("submit", function () {
+    const button = document.getElementById("scan-button");
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Scanning…';
+  });
+</script>
+{% endblock %}

@@ -7,7 +7,7 @@ FEATURES = [
     {
         "no": 4, "title": "Waste Sorting Guide & Material Catalogue", "short": "Sorting Guide", "owner": "Neha",
         "url": "/materials", "icon": "recycle", "roles": None,
-        "blurb": "Search materials, see which bin they go in and how to prepare them.",
+        "blurb": "Search materials or scan a photo, see which bin they go in and how to prepare them.",
     },
     {
         "no": 10, "title": "Collector & Service Zone Management", "short": "Zones & Collectors", "owner": "Esha",
